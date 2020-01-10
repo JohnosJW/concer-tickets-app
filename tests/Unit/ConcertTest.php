@@ -81,9 +81,7 @@ class ConcertTest extends TestCase
     /** test */
     public function testCanOrderConcertTickets()
     {
-        $concert = factory(Concert::class)->create();
-
-        $concert->addTickets(50);
+        $concert = factory(Concert::class)->create()->addTickets(50);
 
         $order = $concert->orderTickets('john@ex.com', 3);
 
@@ -94,9 +92,7 @@ class ConcertTest extends TestCase
     /** @test */
     public function testCanAddTickets()
     {
-        $concert = factory(Concert::class)->create();
-
-        $concert->addTickets(50);
+        $concert = factory(Concert::class)->create()->addTickets(50);
 
         $this->assertEquals(50, $concert->ticketsRemaining());
     }
@@ -104,9 +100,7 @@ class ConcertTest extends TestCase
     /** @test */
     public function testTicketsRemainingDoesNotIncludeTicketsAssociatedWithAnOrder()
     {
-        $concert = factory(Concert::class)->create();
-
-        $concert->addTickets(50);
+        $concert = factory(Concert::class)->create()->addTickets(50);
 
         $concert->orderTickets('john@ex.com', 30);
 

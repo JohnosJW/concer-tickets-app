@@ -23,6 +23,14 @@ class Order extends Model
    }
 
     /**
+     * @return int
+     */
+   public function ticketQuantity()
+   {
+       return $this->tickets()->count();
+   }
+
+    /**
      * @throws \Exception
      */
    public function cancel()

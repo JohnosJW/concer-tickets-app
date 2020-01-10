@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Concert extends Model
 {
-    /** @var array  */
+    /** @var array */
     protected $guarded = [];
 
-    /** @var array  */
+    /** @var array */
     protected $dates = ['date'];
 
     /**
@@ -59,6 +59,24 @@ class Concert extends Model
     }
 
     /**
+     * @param $customerEmail
+     * @return bool
+     */
+    public function hasOrderFor($customerEmail)
+    {
+        return $this->orders()->where('email', $customerEmail)->count() > 0;
+    }
+
+    /**
+     * @param $customerEmail
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function ordersFor($customerEmail)
+    {
+        return $this->orders()->where('email', $customerEmail)->get();
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function tickets()
@@ -88,12 +106,15 @@ class Concert extends Model
 
     /**
      * @param $quantity
+     * @return $this
      */
     public function addTickets($quantity)
     {
         foreach (range(1, $quantity) as $i) {
             $this->tickets()->create([]);
         }
+
+        return $this;
     }
 
     /**
