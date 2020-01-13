@@ -15,6 +15,14 @@ class Order extends Model
    protected $guarded = [];
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+   public function concert()
+   {
+       return $this->belongsTo(Concert::class);
+   }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
    public function tickets()
@@ -40,5 +48,17 @@ class Order extends Model
       }
 
       $this->delete();
+   }
+
+    /**
+     * @return array
+     */
+   public function toArray()
+   {
+       return [
+           'email' => $this->email,
+           'ticket_quantity' => $this->ticketQuantity(),
+           'amount' => $this->ticketQuantity() * $this->concert->ticket_price,
+       ];
    }
 }

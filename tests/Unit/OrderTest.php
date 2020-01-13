@@ -12,11 +12,27 @@ class OrderTest extends TestCase
     use DatabaseMigrations;
 
     /** @test */
+    public function testConvertingToAnArray()
+    {
+        $concert = factory(Concert::class)->create([
+            'ticket_price' => 1200
+        ])
+            ->addTickets(5);
+        $order = $concert->orderTickets('john@example.com', 5);
+
+        $result = $order->toArray();
+
+        $this->assertEquals([
+            'email' => 'john@example.com',
+            'ticket_quantity' => 5,
+            'amount' => 6000,
+        ], $result);
+    }
+
+    /** @test */
     public function testTicketsAreReleasedWhenAnOrderIsCanceled()
     {
-        $concert = factory(Concert::class)->create();
-
-        $concert->addTickets(10);
+        $concert = factory(Concert::class)->create()->addTickets(10);
 
         $order = $concert->orderTickets('john@example.com', 5);
 
