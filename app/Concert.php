@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 
 /**
@@ -91,11 +92,37 @@ class Concert extends Model
      */
     public function orderTickets($email, $ticketQuantity)
     {
-        $order = $this->orders()->create([
-            'email' => $email
-        ]);
+        $tickets = $this->findTickets($ticketQuantity);
 
-        $tickets = $this->tickets()->take($ticketQuantity)->get();
+        return $this->createOrder($email, $tickets);
+    }
+
+    /**
+     * @param $quantity
+     * @return mixed
+     */
+    public function findTickets($quantity)
+    {
+        $tickets = $this->tickets()->available()->take($quantity)->get();
+
+        if ($tickets->count() < $quantity) {
+            throw new NotFoundHttpException();
+        }
+
+        return $tickets;
+    }
+
+    /**
+     * @param $email
+     * @param $tickets
+     * @return Model
+     */
+    public function createOrder($email, $tickets)
+    {
+        $order = $this->orders()->create([
+            'email' => $email,
+            'amount' => count($tickets) * $this->ticket_price
+        ]);
 
         foreach ($tickets as $ticket) {
             $order->tickets()->save($ticket);

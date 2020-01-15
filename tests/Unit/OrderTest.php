@@ -14,10 +14,8 @@ class OrderTest extends TestCase
     /** @test */
     public function testConvertingToAnArray()
     {
-        $concert = factory(Concert::class)->create([
-            'ticket_price' => 1200
-        ])
-            ->addTickets(5);
+        $concert = factory(Concert::class)->create(['ticket_price' => 1200])->addTickets(5);
+
         $order = $concert->orderTickets('john@example.com', 5);
 
         $result = $order->toArray();
