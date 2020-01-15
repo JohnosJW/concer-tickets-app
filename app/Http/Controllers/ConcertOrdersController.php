@@ -6,6 +6,7 @@ use App\Billing\FakePaymentGateway;
 use App\Billing\PaymentFailedException;
 use App\Billing\PaymentGateway;
 use App\Concert;
+use App\Order;
 use Illuminate\Http\Request;
 
 /**
@@ -44,7 +45,7 @@ class ConcertOrdersController extends Controller
             $tickets = $concert->findTickets(request('ticket_quantity'));
 
             // Creating the order
-            $order = $concert->createOrder(request('email'), $tickets);
+            $order = Order::forTickets($tickets, request('email'));
 
             // Charging the customer
             $this->paymentGateway->charge(request('ticket_quantity') * $concert->ticket_price, request('payment_token'));

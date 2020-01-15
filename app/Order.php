@@ -15,6 +15,25 @@ class Order extends Model
    protected $guarded = [];
 
     /**
+     * @param $tickets
+     * @param $email
+     * @return mixed
+     */
+   public static function forTickets($tickets, $email)
+   {
+       $order = self::create([
+           'email' => $email,
+           'amount' => $tickets->sum('price'),
+       ]);
+
+       foreach ($tickets as $ticket) {
+           $order->tickets()->save($ticket);
+       }
+
+       return $order;
+   }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
    public function concert()
