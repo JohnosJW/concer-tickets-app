@@ -19,11 +19,11 @@ class Order extends Model
      * @param $email
      * @return mixed
      */
-   public static function forTickets($tickets, $email)
+   public static function forTickets($tickets, $email, $amount = null)
    {
        $order = self::create([
            'email' => $email,
-           'amount' => $tickets->sum('price'),
+           'amount' => $amount,
        ]);
 
        foreach ($tickets as $ticket) {

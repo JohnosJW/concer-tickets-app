@@ -7,6 +7,7 @@ use App\Billing\PaymentFailedException;
 use App\Billing\PaymentGateway;
 use App\Concert;
 use App\Order;
+use App\Reservation;
 use Illuminate\Http\Request;
 
 /**
@@ -42,13 +43,18 @@ class ConcertOrdersController extends Controller
 
         try {
             // Find some tickets
+            /** @var  $tickets */
             $tickets = $concert->findTickets(request('ticket_quantity'));
 
+            /** @var  $reservation */
+            $reservation = new Reservation($tickets);
+
             // Creating the order
-            $order = Order::forTickets($tickets, request('email'));
+            /** @var  $order */
+            $order = Order::forTickets($tickets, request('email'), $reservation->totalCost());
 
             // Charging the customer
-            $this->paymentGateway->charge(request('ticket_quantity') * $concert->ticket_price, request('payment_token'));
+            $this->paymentGateway->charge($reservation->totalCost(), request('payment_token'));
 
             return response()->json($order, 201);
         } catch (PaymentFailedException $e) {
