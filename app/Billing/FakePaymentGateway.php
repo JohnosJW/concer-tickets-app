@@ -12,6 +12,9 @@ class FakePaymentGateway implements PaymentGateway
     /** @var \Illuminate\Support\Collection  */
     private  $charges;
 
+    /** @var  */
+    private $beforeFirstChargeCallball;
+
     /**
      * FakePaymentGateway constructor.
      */
@@ -35,6 +38,12 @@ class FakePaymentGateway implements PaymentGateway
      */
     public function charge($amount, $token)
     {
+        if ($this->beforeFirstChargeCallball !== null) {
+            $callback = $this->beforeFirstChargeCallball;
+            $this->beforeFirstChargeCallball = null;
+            $callback($this);
+        }
+
         if ($token !== $this->getValidTestToken()) {
             throw new PaymentFailedException;
         }
@@ -48,5 +57,13 @@ class FakePaymentGateway implements PaymentGateway
     public function totalCharges()
     {
         return $this->charges->sum();
+    }
+
+    /**
+     * @param $callback
+     */
+    public function beforeFirstCharge($callback)
+    {
+        $this->beforeFirstChargeCallball = $callback;
     }
 }
