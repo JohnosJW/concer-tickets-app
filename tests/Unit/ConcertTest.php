@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Concert;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -105,5 +106,37 @@ class ConcertTest extends TestCase
         $concert->orderTickets('john@ex.com', 30);
 
         $this->assertEquals(20, $concert->ticketsRemaining());
+    }
+
+    public function testCannotReserveTicketsThatHaveAlreadyBeenPurchased()
+    {
+        $concert = factory(Concert::class)->create()->addTickets(3);
+
+        $concert->orderTickets('john@ex.com', 2);
+
+        try {
+           $concert->reserveTickets(2);
+        } catch (NotFoundHttpException $e) {
+            $this->assertEquals(1, $concert->ticketsRemaining());
+            return;
+        }
+
+        $this->fail("Reserving tickets succeeded even though the tickets were already sold.");
+    }
+
+    public function testCannotReserveTicketsThatHaveAlreadyBeenReserved()
+    {
+        $concert = factory(Concert::class)->create()->addTickets(3);
+
+        $concert->reserveTickets(2);
+
+        try {
+            $concert->reserveTickets(2);
+        } catch (NotFoundHttpException $e) {
+            $this->assertEquals(3, $concert->ticketsRemaining());
+            return;
+        }
+
+        $this->fail("Reserving tickets succeeded even though the tickets were already reserved.");
     }
 }

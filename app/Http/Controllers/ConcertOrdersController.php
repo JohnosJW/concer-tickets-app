@@ -44,7 +44,7 @@ class ConcertOrdersController extends Controller
         try {
             // Find some tickets
             /** @var  $tickets */
-            $tickets = $concert->findTickets(request('ticket_quantity'));
+            $tickets = $concert->reserveTickets(request('ticket_quantity'));
 
             /** @var  $reservation */
             $reservation = new Reservation($tickets);
