@@ -108,6 +108,7 @@ class PurchaseTicketsTest extends TestCase
 
         $this->assertValidationError($response, 'email');
         $this->assertFalse($concert->hasOrderFor('john@example.com'));
+        $this->assertEquals(3, $concert->ticketsRemaining());
     }
 
     /** @test */
