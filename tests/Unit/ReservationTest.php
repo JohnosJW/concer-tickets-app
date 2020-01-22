@@ -55,4 +55,20 @@ class ReservationTest extends TestCase
 
         $reservation->cancel();
     }
+
+    /** @test */
+    public function testRetrievingTheReservationsTickets()
+    {
+        /** @var  $tickets */
+        $tickets = collect([
+            (object) ['price' => 1200],
+            (object) ['price' => 1200],
+            (object) ['price' => 1200],
+        ]);
+
+        /** @var  $reservation */
+        $reservation = new Reservation($tickets);
+
+        $this->assertEquals($tickets, $reservation->tickets());
+    }
 }
