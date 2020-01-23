@@ -9,13 +9,16 @@ class Reservation
     /** @var  */
     private $tickets;
 
+    public $email;
+
     /**
      * Reservation constructor.
      * @param $tickets
      */
-    public function __construct($tickets)
+    public function __construct($tickets, $email)
     {
         $this->tickets = $tickets;
+        $this->email = $email;
     }
 
     /**
@@ -32,6 +35,14 @@ class Reservation
     public function tickets()
     {
         return $this->tickets;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function email()
+    {
+        return $this->email;
     }
 
     public function cancel()

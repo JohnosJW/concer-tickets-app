@@ -80,4 +80,17 @@ class Order extends Model
            'amount' => $this->amount,
        ];
    }
+
+   public static function fromReservation($reservation)
+   {
+       /** @var  $order */
+       $order = self::create([
+           'email' => $reservation->email,
+           'amount' => $reservation->totalCost(),
+       ]);
+
+       $order->tickets()->saveMany($reservation->tickets());
+
+       return $order;
+   }
 }

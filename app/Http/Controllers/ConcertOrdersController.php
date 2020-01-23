@@ -44,11 +44,11 @@ class ConcertOrdersController extends Controller
         try {
             // Find some tickets
             /** @var  $reservation */
-            $reservation = $concert->reserveTickets(request('ticket_quantity'));
+            $reservation = $concert->reserveTickets(request('ticket_quantity'), request('email'));
 
             // Creating the order
             /** @var  $order */
-            $order = Order::forTickets($reservation->tickets(), request('email'), $reservation->totalCost());
+            $order = Order::fromReservation($reservation);
 
             // Charging the customer
             $this->paymentGateway->charge($reservation->totalCost(), request('payment_token'));

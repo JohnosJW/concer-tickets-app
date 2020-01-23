@@ -115,7 +115,7 @@ class ConcertTest extends TestCase
         $concert->orderTickets('john@ex.com', 2);
 
         try {
-           $concert->reserveTickets(2);
+           $concert->reserveTickets(2, 'john@example.com');
         } catch (NotFoundHttpException $e) {
             $this->assertEquals(1, $concert->ticketsRemaining());
             return;
@@ -128,10 +128,10 @@ class ConcertTest extends TestCase
     {
         $concert = factory(Concert::class)->create()->addTickets(3);
 
-        $concert->reserveTickets(2);
+        $concert->reserveTickets(2, 'john@example.com');
 
         try {
-            $concert->reserveTickets(2);
+            $concert->reserveTickets(2, 'john@example.com');
         } catch (NotFoundHttpException $e) {
             $this->assertEquals(3, $concert->ticketsRemaining());
             return;
