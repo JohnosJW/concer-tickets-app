@@ -6,7 +6,7 @@ namespace App;
 
 class Reservation
 {
-    /** @var  */
+    /** @var */
     private $tickets;
 
     public $email;
@@ -43,6 +43,18 @@ class Reservation
     public function email()
     {
         return $this->email;
+    }
+
+    /**
+     * @param $paymentGateway
+     * @param $paymentToken
+     * @return mixed
+     */
+    public function complete($paymentGateway, $paymentToken)
+    {
+        $paymentGateway->charge($this->totalCost(), $paymentToken);
+
+        return Order::forTickets($this->tickets(), $this->email(), $this->totalCost());
     }
 
     public function cancel()
