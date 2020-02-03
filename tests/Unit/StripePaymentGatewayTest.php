@@ -4,15 +4,29 @@
 namespace Tests\Unit;
 
 
+use App\Billing\PaymentFailedException;
 use App\Billing\StripePaymentGateway;
 use Tests\TestCase;
 
 /**
  * Class StripePaymentGatewayTest
  * @package Tests\Unit
+ *
+ * @group integration
  */
 class StripePaymentGatewayTest extends TestCase
 {
+    /**
+     * @throws \Stripe\Exception\ApiErrorException
+     */
+    protected function setUp()
+    {
+        parent::setUp();
+
+        /** @var  lastCharge */
+        $this->lastCharge = $this->lastCharge();
+    }
+
     /**
      * @return mixed
      * @throws \Stripe\Exception\ApiErrorException
@@ -56,17 +70,6 @@ class StripePaymentGatewayTest extends TestCase
         )['data'];
     }
 
-    /**
-     * @throws \Stripe\Exception\ApiErrorException
-     */
-    protected function setUp()
-    {
-        parent::setUp();
-
-        /** @var  lastCharge */
-        $this->lastCharge = $this->lastCharge();
-    }
-
     /** @test  */
     public function testChargesWithAValidPaymentTokenAreSuccessful()
     {
@@ -79,5 +82,24 @@ class StripePaymentGatewayTest extends TestCase
 
         $this->assertCount(1, $this->newCharges());
         $this->assertEquals(2500, $this->lastCharge()->amount);
+    }
+
+    /** @test  */
+    public function testChargesWithAValidPaymentTokenFail()
+    {
+        try {
+            // Create a new StripePaymentGateway
+            /** @var  $paymentGateway */
+            $paymentGateway = new StripePaymentGateway(config('services.stripe.secret'));
+
+            // Create a new charge for more some amount using a invalid token
+            $paymentGateway->charge(2500, 'invalid-payment-token');
+        } catch (PaymentFailedException $e) {
+            $this->assertCount(0, $this->newCharges());
+
+            return;
+        }
+
+        $this->fail("Charging with an invalid token did not throw a PaymentFailedException");
     }
 }
