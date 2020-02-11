@@ -52,6 +52,20 @@ class FakePaymentGateway implements PaymentGateway
     }
 
     /**
+     * @param $callback
+     * @return mixed|void
+     */
+    public function newChargesDuring($callback)
+    {
+        /** @var  $chargedFrom */
+        $chargedFrom = $this->charges->count();
+
+        $callback($this);
+
+        return $this->charges->slice($chargedFrom)->values();
+    }
+
+    /**
      * @return mixed
      */
     public function totalCharges()

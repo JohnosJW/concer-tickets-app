@@ -6,31 +6,21 @@ namespace Tests\Unit;
 
 use App\Billing\FakePaymentGateway;
 use App\Billing\PaymentFailedException;
+use App\Billing\StripePaymentGateway;
 use Tests\TestCase;
+use Tests\Unit\Billing\PaymentGatewayContractTests;
 
 class FakePaymentGatewayTest extends TestCase
 {
-    /** @test */
-    public function testChargesWithAValidPaymentTokenAreSuccessful()
+    use PaymentGatewayContractTests;
+
+    /**
+     * @return StripePaymentGateway
+     */
+    protected function getPaymentGateway()
     {
-        $paymentGateway = new FakePaymentGateway;
-
-        $paymentGateway->charge(2500, $paymentGateway->getValidTestToken());
-
-        $this->assertEquals(2500, $paymentGateway->totalCharges());
+        return new FakePaymentGateway;
     }
-
-//    public function testChargesWithAnInvalidPaymentTokenFail()
-//    {
-//        try {
-//            $paymentGateway = new FakePaymentGateway;
-//            $paymentGateway->charge(2500, 'invalid-payment-token');
-//        } catch (PaymentFailedException $e) {
-//            return;
-//        }
-//
-//        $this->fail();
-//    }
 
     /** @test */
     public function testRunningAHookBeforeTheFirstCharge()

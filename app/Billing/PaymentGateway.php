@@ -15,4 +15,15 @@ interface PaymentGateway
      * @return mixed
      */
     public function charge($amount, $token);
+
+    /**
+     * @return mixed
+     */
+    public function getValidTestToken();
+
+    /**
+     * @param $callback
+     * @return mixed
+     */
+    public function newChargesDuring($callback);
 }
