@@ -1,11 +1,11 @@
 <?php
 
 
-namespace App\Billing;
+namespace App\Billing\Interfaces;
 
 /**
  * Interface PaymentGateway
- * @package App\Billing
+ * @package App\Billing\Interfaces
  */
 interface PaymentGateway
 {

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Facades\TicketCode;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -34,11 +35,26 @@ class Ticket extends Model
         $this->update(['order_id' => null]);
     }
 
+    /**
+     * @param $order
+     */
+    public function claimFor($order)
+    {
+        $this->code = TicketCode::generateFor($this);
+        $order->tickets()->save($this);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function concert()
     {
        return $this->belongsTo(Concert::class);
     }
 
+    /**
+     * @return mixed
+     */
     public function getPriceAttribute()
     {
         return $this->concert->ticket_price;

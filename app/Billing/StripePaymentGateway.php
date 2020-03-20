@@ -3,7 +3,7 @@
 namespace App\Billing;
 
 
-use Stripe\Charge;
+use App\Billing\Interfaces\PaymentGateway;
 use Stripe\Exception\InvalidRequestException;
 
 /**
@@ -12,6 +12,9 @@ use Stripe\Exception\InvalidRequestException;
  */
 class StripePaymentGateway implements PaymentGateway
 {
+    /** @var string  */
+    const TEST_CARD_NUMBER = '4242424242424242';
+
     /** @var  */
     private $apiKey;
 
@@ -33,11 +36,19 @@ class StripePaymentGateway implements PaymentGateway
     public function charge($amount, $token)
     {
         try {
-            Charge::create([
+            /** @var  $stripeCharge */
+            $stripeCharge = \Stripe\Charge::create([
                 'amount' => $amount,
                 'source' => $token,
                 'currency' => 'usd',
             ], ['api_key' => $this->apiKey]);
+
+            $a =  new Charge([
+                'amount' => $stripeCharge['amount'],
+                'card_last_four' => $stripeCharge['source']['last4'],
+            ]);
+
+//            dd($a);
         } catch (InvalidRequestException $e) {
             throw new PaymentFailedException();
         }
@@ -47,16 +58,16 @@ class StripePaymentGateway implements PaymentGateway
      * @return string
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function getValidTestToken()
+    public function getValidTestToken($cardNumber = self::TEST_CARD_NUMBER)
     {
         return \Stripe\Token::create([
             'card' => [
-                'number' => '4242424242424242',
+                'number' => $cardNumber,
                 'exp_month' => 1,
                 'exp_year' => date('Y') + 1,
                 'cvc' => '314',
             ],
-        ], ['api_key' => config('services.stripe.secret')])->id;
+        ], ['api_key' => $this->apiKey])->id;
     }
 
     /**
@@ -71,7 +82,12 @@ class StripePaymentGateway implements PaymentGateway
 
         $callback($this);
 
-        return $this->newChargesSince($latestCharge)->pluck('amount');
+        return $this->newChargesSince($latestCharge)->map( function ($stripeCharge) {
+            return new Charge([
+                'amount' => $stripeCharge['amount'],
+                'card_last_four' => $stripeCharge['source']['last4']
+            ]);
+        });
     }
 
     /**

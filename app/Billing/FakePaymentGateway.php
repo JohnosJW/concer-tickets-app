@@ -3,17 +3,25 @@
 
 namespace App\Billing;
 
+use App\Billing\Interfaces\PaymentGateway;
+
 /**
  * Class FakePaymentGateway
  * @package App\Billing
  */
 class FakePaymentGateway implements PaymentGateway
 {
+    /** @var string  */
+    const TEST_CARD_NUMBER = '4242424242424242';
+
     /** @var \Illuminate\Support\Collection  */
     private  $charges;
 
     /** @var  */
-    private $beforeFirstChargeCallball;
+    private $tokens;
+
+    /** @var  */
+    private $beforeFirstChargeCallback;
 
     /**
      * FakePaymentGateway constructor.
@@ -21,14 +29,21 @@ class FakePaymentGateway implements PaymentGateway
     public function __construct()
     {
         $this->charges = collect();
+        $this->tokens = collect();
     }
 
     /**
-     * @return string
+     * @param string $cardNumber
+     * @return mixed|string
      */
-    public function getValidTestToken()
+    public function getValidTestToken($cardNumber = self::TEST_CARD_NUMBER)
     {
-        return "valid-token";
+        /** @var  $token */
+        $token = 'fake-tok_' . str_random(24);
+
+        $this->tokens[$token] = $cardNumber;
+
+        return $token;
     }
 
     /**
@@ -38,17 +53,20 @@ class FakePaymentGateway implements PaymentGateway
      */
     public function charge($amount, $token)
     {
-        if ($this->beforeFirstChargeCallball !== null) {
-            $callback = $this->beforeFirstChargeCallball;
-            $this->beforeFirstChargeCallball = null;
+        if ($this->beforeFirstChargeCallback !== null) {
+            $callback = $this->beforeFirstChargeCallback;
+            $this->beforeFirstChargeCallback = null;
             $callback($this);
         }
 
-        if ($token !== $this->getValidTestToken()) {
+        if (! $this->tokens->has($token)) {
             throw new PaymentFailedException;
         }
 
-        $this->charges[] = $amount;
+        return $this->charges[] = new Charge([
+            'amount' => $amount,
+            'card_last_four' => substr($this->tokens[$token], -4)
+        ]);
     }
 
     /**
@@ -70,7 +88,7 @@ class FakePaymentGateway implements PaymentGateway
      */
     public function totalCharges()
     {
-        return $this->charges->sum();
+        return $this->charges->map->amount()->sum();
     }
 
     /**
@@ -78,6 +96,6 @@ class FakePaymentGateway implements PaymentGateway
      */
     public function beforeFirstCharge($callback)
     {
-        $this->beforeFirstChargeCallball = $callback;
+        $this->beforeFirstChargeCallback = $callback;
     }
 }

@@ -15,11 +15,11 @@ class FakePaymentGatewayTest extends TestCase
     use PaymentGatewayContractTests;
 
     /**
-     * @return StripePaymentGateway
+     * @return FakePaymentGateway
      */
     protected function getPaymentGateway()
     {
-        return new FakePaymentGateway;
+        return new FakePaymentGateway();
     }
 
     /** @test */

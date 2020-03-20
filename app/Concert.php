@@ -52,7 +52,7 @@ class Concert extends Model
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function orders()
     {
@@ -86,18 +86,6 @@ class Concert extends Model
     }
 
     /**
-     * @param $email
-     * @param $ticketQuantity
-     * @return Model
-     */
-    public function orderTickets($email, $ticketQuantity)
-    {
-        $tickets = $this->findTickets($ticketQuantity);
-
-        return $this->createOrder($email, $tickets);
-    }
-
-    /**
      * @param $quantity
      * @param $email
      * @return Reservation
@@ -125,16 +113,6 @@ class Concert extends Model
         }
 
         return $tickets;
-    }
-
-    /**
-     * @param $email
-     * @param $tickets
-     * @return mixed
-     */
-    public function createOrder($email, $tickets)
-    {
-        return Order::forTickets($tickets, $email, $tickets->sum('price'));
     }
 
     /**

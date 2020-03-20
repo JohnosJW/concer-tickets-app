@@ -3,11 +3,15 @@
 namespace Tests\Feature;
 
 use App\Billing\FakePaymentGateway;
-use App\Billing\PaymentGateway;
+use App\Billing\Interfaces\PaymentGateway;
 use App\Concert;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
+/**
+ * Class PurchaseTicketsTest
+ * @package Tests\Feature
+ */
 class PurchaseTicketsTest extends TestCase
 {
     use DatabaseMigrations;
@@ -15,6 +19,7 @@ class PurchaseTicketsTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
+
         $this->paymentGateway = new FakePaymentGateway();
         $this->app->instance(PaymentGateway::class, $this->paymentGateway);
     }
@@ -26,7 +31,15 @@ class PurchaseTicketsTest extends TestCase
      */
     private function orderTickets($concert, $params)
     {
-        return $this->json('POST', '/concerts/' . $concert->id . '/orders', $params);
+        /** @var  $savedRequest */
+        $savedRequest = $this->app['request'];
+
+        /** @var  $response */
+        $response = $this->response = $this->json('POST', "/concerts/{$concert->id}/orders", $params);
+
+        $this->app['request'] = $savedRequest;
+
+        return $response;
     }
 
     /**
@@ -44,32 +57,26 @@ class PurchaseTicketsTest extends TestCase
     /** @test */
     public function testCustomerCanPurchaseConcertTickets()
     {
-//        $paymentGateway = new StripeGateway;
-        $paymentGateway = new FakePaymentGateway;
+        $this->app->instance(PaymentGateway::class, $this->paymentGateway);
 
-        $this->app->instance(PaymentGateway::class, $paymentGateway);
-
-        // Arrange
         // Create a concert
         $concert = factory(Concert::class)
             ->states('published')
             ->create(['ticket_price' => 3250])
-            ->addTickets(50);
+            ->addTickets(3);
 
-        // Act
         // Purchase concert tickets
         $response = $this->orderTickets($concert, [
             'email' => 'john@example.com',
             'ticket_quantity' => 3,
-            'payment_token' => $paymentGateway->getValidTestToken()
+            'payment_token' => $this->paymentGateway->getValidTestToken()
         ]);
 
         // Assert
         $response->assertStatus(201);
 
         // Make sure the customer was charged the correct amount
-        $this->assertEquals(9750, $paymentGateway->totalCharges());
-
+        $this->assertEquals(9750, $this->paymentGateway->totalCharges());
 
         // Make sure that an order exist for this customer
         $this->assertTrue($concert->hasOrderFor('john@example.com'));

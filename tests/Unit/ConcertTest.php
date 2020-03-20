@@ -3,12 +3,17 @@
 namespace Tests\Unit;
 
 use App\Concert;
+use App\Order;
+use App\Ticket;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
+/**
+ * Class ConcertTest
+ * @package Tests\Unit
+ */
 class ConcertTest extends TestCase
 {
     use DatabaseMigrations;
@@ -79,17 +84,6 @@ class ConcertTest extends TestCase
         $this->assertFalse($publishedConcerts->contains($unpublishedConcertB));
     }
 
-    /** test */
-    public function testCanOrderConcertTickets()
-    {
-        $concert = factory(Concert::class)->create()->addTickets(50);
-
-        $order = $concert->orderTickets('john@ex.com', 3);
-
-        $this->assertEquals('john@ex.com', $order->email);
-        $this->assertEquals(3, $order->tickets()->count());
-    }
-
     /** @test */
     public function testCanAddTickets()
     {
@@ -101,21 +95,28 @@ class ConcertTest extends TestCase
     /** @test */
     public function testTicketsRemainingDoesNotIncludeTicketsAssociatedWithAnOrder()
     {
-        $concert = factory(Concert::class)->create()->addTickets(50);
+        /** @var  $concert */
+        $concert = factory(Concert::class)->create();
 
-        $concert->orderTickets('john@ex.com', 30);
+        $concert->tickets()->saveMany(factory(Ticket::class, 30)->create(['order_id' => 1]));
+        $concert->tickets()->saveMany(factory(Ticket::class, 20)->create(['order_id' => null]));
 
         $this->assertEquals(20, $concert->ticketsRemaining());
     }
 
+    /** @test */
     public function testCannotReserveTicketsThatHaveAlreadyBeenPurchased()
     {
+        /** @var  $concert */
         $concert = factory(Concert::class)->create()->addTickets(3);
 
-        $concert->orderTickets('john@ex.com', 2);
+        /** @var  $order */
+        $order = factory(Order::class)->create();
+
+        $order->tickets()->saveMany($concert->tickets->take(2));
 
         try {
-           $concert->reserveTickets(2, 'john@example.com');
+            $concert->reserveTickets(2, 'john@example.com');
         } catch (NotFoundHttpException $e) {
             $this->assertEquals(1, $concert->ticketsRemaining());
             return;
@@ -124,6 +125,7 @@ class ConcertTest extends TestCase
         $this->fail("Reserving tickets succeeded even though the tickets were already sold.");
     }
 
+    /** @test */
     public function testCannotReserveTicketsThatHaveAlreadyBeenReserved()
     {
         $concert = factory(Concert::class)->create()->addTickets(3);

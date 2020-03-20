@@ -2,11 +2,12 @@
 
 namespace App;
 
+use App\Facades\OrderConfirmationNumber;
 use Illuminate\Database\Eloquent\Model;
 
 
 /**
- * Class Order
+ * Class OrderConfirmationNumber
  * @package App
  */
 class Order extends Model
@@ -19,18 +20,27 @@ class Order extends Model
      * @param $email
      * @return mixed
      */
-   public static function forTickets($tickets, $email, $amount = null)
+   public static function forTickets($tickets, $email, $charge)
    {
        $order = self::create([
+           'confirmation_number' => OrderConfirmationNumber::generate(),
            'email' => $email,
-           'amount' => $amount,
+           'amount' => $charge->amount(),
+           'card_last_four' => $charge->cardLastFour()
        ]);
 
-       foreach ($tickets as $ticket) {
-           $order->tickets()->save($ticket);
-       }
+       $tickets->each->claimFor($order);
 
        return $order;
+   }
+
+    /**
+     * @param $confirmationNumber
+     * @return mixed
+     */
+   public static function findByConfirmationNumber($confirmationNumber)
+   {
+        return self::where('confirmation_number', $confirmationNumber)->firstOrFail();
    }
 
     /**
@@ -72,12 +82,17 @@ class Order extends Model
     /**
      * @return array
      */
-   public function toArray()
+   public function toArray() : array
    {
        return [
+           'confirmation_number' => $this->confirmation_number,
            'email' => $this->email,
-           'ticket_quantity' => $this->ticketQuantity(),
            'amount' => $this->amount,
+           'tickets' => $this->tickets->map( function ($ticket) {
+               return [
+                 'code' => $ticket->code
+               ];
+           })->all(),
        ];
    }
 }

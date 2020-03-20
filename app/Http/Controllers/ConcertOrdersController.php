@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Billing\FakePaymentGateway;
 use App\Billing\PaymentFailedException;
-use App\Billing\PaymentGateway;
+use App\Billing\Interfaces\PaymentGateway;
 use App\Concert;
 use App\Order;
 use App\Reservation;
@@ -39,6 +39,7 @@ class ConcertOrdersController extends Controller
         $this->validate(request(), [
             'email' => ['required', 'email'],
             'ticket_quantity' => ['required', 'integer', 'min:1'],
+            'payment_token' => ['required'],
         ]);
 
         try {
@@ -50,13 +51,10 @@ class ConcertOrdersController extends Controller
             /** @var  $order */
             $order = $reservation->complete($this->paymentGateway, request('payment_token'));
 
-            // Charging the customer
-//            $this->paymentGateway->charge($reservation->totalCost(), request('payment_token'));
-
             return response()->json($order, 201);
         } catch (PaymentFailedException $e) {
             // Cancel order
-            $order->cancel();
+            $reservation->cancel();
 
             return response()->json([], 422);
         } catch (NotEnoughTicketsException $e) {
