@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Billing\FakePaymentGateway;
 use App\Billing\PaymentFailedException;
 use App\Billing\Interfaces\PaymentGateway;
 use App\Concert;
-use App\Order;
-use App\Reservation;
-use Illuminate\Http\Request;
+use App\Mail\MailBuilder;
+use App\Mail\OrderConfirmationEmail;
 
 /**
  * Class ConcertOrdersController
@@ -50,6 +48,8 @@ class ConcertOrdersController extends Controller
             // Creating the order
             /** @var  $order */
             $order = $reservation->complete($this->paymentGateway, request('payment_token'));
+
+            MailBuilder::to($order->email)->send(new OrderConfirmationEmail($order));
 
             return response()->json($order, 201);
         } catch (PaymentFailedException $e) {

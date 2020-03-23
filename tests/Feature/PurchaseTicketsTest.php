@@ -5,6 +5,10 @@ namespace Tests\Feature;
 use App\Billing\FakePaymentGateway;
 use App\Billing\Interfaces\PaymentGateway;
 use App\Concert;
+use App\Facades\OrderConfirmationNumber;
+use App\Facades\TicketCode;
+use App\Mail\MailBuilder;
+use App\Mail\OrderConfirmationEmail;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
@@ -116,6 +120,40 @@ class PurchaseTicketsTest extends TestCase
 //        $this->assertValidationError($response, 'email');
         $this->assertFalse($concert->hasOrderFor('john@example.com'));
         $this->assertEquals(3, $concert->ticketsRemaining());
+    }
+
+    /** @test */
+    public function testCustomerCanPurchaseTicketsToAPublishedConcert()
+    {
+        $this->withoutExceptionHandling();
+
+        MailBuilder::fake();
+
+        OrderConfirmationNumber::shouldReceive('generate')->andReturn('ORDERCONFIRMATION1234');
+
+        TicketCode::shouldReceive('generateFor')->andReturn('TICKETCODE1', 'TICKETCODE2', 'TICKETCODE3');
+
+        /** @var  $concert */
+        $concert = factory(Concert::class)->states('published')->create(['ticket_price' => 3250])->addTickets(3);
+
+        /** @var  $response */
+        $response = $this->orderTickets($concert, [
+            'email' => 'john@example.com',
+            'ticket_quantity' => 3,
+            'payment_token' => $this->paymentGateway->getValidTestToken(),
+        ]);
+
+        $response->assertStatus(201);
+
+        $this->assertTrue($concert->hasOrderFor('john@example.com'));
+
+        $order = $concert->ordersFor('john@example.com')->first();
+        $this->assertEquals(3, $order->ticketQuantity());
+
+        MailBuilder::assertSent(OrderConfirmationEmail::class, function ($mail) use ($order) {
+            return $mail->hasTo('john@example.com')
+                && $mail->order->id == $order->id;
+        });
     }
 
     /** @test */
