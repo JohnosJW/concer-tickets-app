@@ -28,24 +28,22 @@ trait PaymentGatewayContractTests
             $paymentGateway->charge(2500, $paymentGateway->getValidTestToken());
         });
 
-//        dd($newCharges);
-
         $this->assertCount(1, $newCharges);
         $this->assertEquals(2500, $newCharges->map->amount()->sum());
     }
 
     /** @test */
-    public function testCanGetDetailsAboutASuccessfulCharge()
-    {
-        /** @var  $paymentGateway */
-        $paymentGateway = $this->getPaymentGateway();
-
-        /** @var  $charge */
-        $charge = $paymentGateway->charge(2500, $paymentGateway->getValidTestToken($paymentGateway::TEST_CARD_NUMBER));
-
-        $this->assertEquals(substr($paymentGateway::TEST_CARD_NUMBER, -4), $charge->cardLastFour());
-        $this->assertEquals(2500, $charge->amount());
-    }
+//    public function testCanGetDetailsAboutASuccessfulCharge()
+//    {
+//        /** @var  $paymentGateway */
+//        $paymentGateway = $this->getPaymentGateway();
+//
+//        /** @var  $charge */
+//        $charge = $paymentGateway->charge(2500, $paymentGateway->getValidTestToken($paymentGateway::TEST_CARD_NUMBER));
+//
+//        $this->assertEquals(substr($paymentGateway::TEST_CARD_NUMBER, -4), $charge->cardLastFour());
+//        $this->assertEquals(2500, $charge->amount());
+//    }
 
     /** @test */
     public function testCanFetchChargesCreatedDuringACallBack()
