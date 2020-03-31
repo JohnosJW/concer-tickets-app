@@ -27,7 +27,7 @@ class PromoteLoginTest extends TestCase
       ]);
 
       /** @var  $response */
-      $response = $this->post('/login', [
+      $response = $this->post('/auth', [
           'email' => 'jane@example.com',
           'password' => 'super-secret-password',
       ]);
@@ -47,12 +47,12 @@ class PromoteLoginTest extends TestCase
         ]);
 
         /** @var  $response */
-        $response = $this->post('/login', [
+        $response = $this->post('/auth', [
             'email' => 'jane@example.com',
             'password' => 'not-the-right-password',
         ]);
 
-        $response->assertRedirect('/login');
+        $response->assertRedirect('/auth');
         $response->assertSessionHasErrors('email');
         $this->assertFalse(Auth::check());
     }
@@ -61,12 +61,12 @@ class PromoteLoginTest extends TestCase
     public function testLoggingInWithAnAccountThatDoesNotExist()
     {
         /** @var  $response */
-        $response = $this->post('/login', [
+        $response = $this->post('/auth', [
             'email' => 'nobody@example.com',
             'password' => 'not-the-right-password',
         ]);
 
-        $response->assertRedirect('/login');
+        $response->assertRedirect('/auth');
         $response->assertSessionHasErrors('email');
         $this->assertFalse(Auth::check());
     }

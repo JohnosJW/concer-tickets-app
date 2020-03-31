@@ -12,12 +12,20 @@ use Illuminate\Support\Facades\Auth;
 class LoginController extends Controller
 {
     /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    /**
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function login()
     {
         if (!Auth::attempt(request(['email', 'password']))) {
-            return redirect('/login')->withErrors([
+            return redirect('/auth')->withErrors([
                 'email' => ['These credentials do not match our records.']
             ]);
         }
