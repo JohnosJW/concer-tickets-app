@@ -23,3 +23,7 @@ Route::get('/orders/{confirmationNumber}', 'OrdersController@show');
 Route::get('/login', 'Auth\LoginController@loginForm');
 
 Route::post('/auth', 'Auth\LoginController@login');
+
+Route::group(['middleware' => 'auth'], function () {
+    Route::get('/backstage/concerts/new', 'Backstage\ConcertsController@create');
+});
