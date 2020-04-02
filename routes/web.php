@@ -10,11 +10,7 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::get('/', function () {
-    return 'Laravel';
-});
-
-Route::get('/concerts/{id}', 'ConcertsController@show');
+Route::get('/concerts/{id}', 'ConcertsController@show')->name('concerts.show');
 
 Route::post('/concerts/{id}/orders', 'ConcertOrdersController@store');
 
@@ -24,6 +20,7 @@ Route::get('/login', 'Auth\LoginController@loginForm');
 
 Route::post('/auth', 'Auth\LoginController@login');
 
-Route::group(['middleware' => 'auth'], function () {
-    Route::get('/backstage/concerts/new', 'Backstage\ConcertsController@create');
+Route::group(['middleware' => 'auth', 'prefix' => 'backstage', 'namespace' => 'Backstage'], function () {
+    Route::get('/concerts/new', 'ConcertsController@create');
+    Route::post('/concerts', 'ConcertsController@store');
 });
