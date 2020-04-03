@@ -32,6 +32,11 @@ class ConcertsController extends Controller
      */
     public function store()
     {
+        $this->validate(request(), [
+            'title' => ['required'],
+        ]);
+
+        /** @var  $concert */
         $concert = Concert::create([
             'title' => request('title'),
             'subtitle' => request('subtitle'),
