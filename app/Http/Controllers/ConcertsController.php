@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Concert;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 /**
  * Class ConcertsController
@@ -12,6 +11,14 @@ use Illuminate\Http\Request;
  */
 class ConcertsController extends Controller
 {
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function index()
+    {
+        return view('concerts.index', ['concerts' => Concert::all()]);
+    }
+
     /**
      * @param $id
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
@@ -60,7 +67,7 @@ class ConcertsController extends Controller
             'zip' => request('zip'),
             'additional_information' => request('additional_information'),
         ])->addtickets(request('ticket_quantity'));
-        
+
         $concert->publish();
 
         return redirect()->route('concerts.show', ['id' => $concert]);

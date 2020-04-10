@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Concert;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
@@ -11,6 +12,34 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 class ViewConcertListingTest extends TestCase
 {
     use DatabaseMigrations;
+
+    /** @test */
+    public function testGuestsCannotViewAPromotersConcertList()
+    {
+        /** @var  $response */
+        $response = $this->get('/backstage/concerts');
+
+        $response->assertStatus(302);
+        $response->assertRedirect('/login');
+    }
+
+    /** @test */
+    public function testPromotersCanViewAListOfTheirConcerts()
+    {
+        /** @var  $user */
+        $user = factory(User::class)->create();
+
+        /** @var  $concerts */
+        $concerts = factory(Concert::class)->create(['user_id' => $user->id]);
+
+        /** @var  $response */
+        $response = $this->actingAs($user)->get('/backstage/concerts');
+
+        $response->assertStatus(200);
+        $this->assertTrue($response->original->getData()['concerts']->contains($concerts[0]));
+        $this->assertTrue($response->original->getData()['concerts']->contains($concerts[1]));
+        $this->assertTrue($response->original->getData()['concerts']->contains($concerts[2]));
+    }
 
     /** @test */
     public function testUserCanViewAConcertListing()
