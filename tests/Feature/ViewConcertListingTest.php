@@ -24,13 +24,19 @@ class ViewConcertListingTest extends TestCase
     }
 
     /** @test */
-    public function testPromotersCanViewAListOfTheirConcerts()
+    public function testPromotersCanOnlyViewAListOfTheirConcerts()
     {
         /** @var  $user */
         $user = factory(User::class)->create();
 
         /** @var  $concerts */
         $concerts = factory(Concert::class)->create(['user_id' => $user->id]);
+
+        /** @var  $otherUser */
+        $otherUser = factory(User::class)->create();
+
+        /** @var  $otherUsersConcert */
+        $otherUsersConcert = factory(Concert::class)->create(['user_id' => $otherUser->id]);
 
         /** @var  $response */
         $response = $this->actingAs($user)->get('/backstage/concerts');
@@ -39,6 +45,7 @@ class ViewConcertListingTest extends TestCase
         $this->assertTrue($response->original->getData()['concerts']->contains($concerts[0]));
         $this->assertTrue($response->original->getData()['concerts']->contains($concerts[1]));
         $this->assertTrue($response->original->getData()['concerts']->contains($concerts[2]));
+        $this->assertFalse($response->original->getData()['concerts']->contains($otherUsersConcert));
     }
 
     /** @test */

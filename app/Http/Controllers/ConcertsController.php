@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Concert;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Class ConcertsController
@@ -16,7 +17,7 @@ class ConcertsController extends Controller
      */
     public function index()
     {
-        return view('concerts.index', ['concerts' => Concert::all()]);
+        return view('concerts.index', ['concerts' => Auth::user()->concerts]);
     }
 
     /**
