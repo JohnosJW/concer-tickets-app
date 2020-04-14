@@ -6,12 +6,22 @@ use App\Concert;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\TestResponse;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ViewConcertListingTest extends TestCase
 {
     use DatabaseMigrations;
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        TestResponse::macro('data', function ($key) {
+            return $this->original->getData()[$key];
+        });
+    }
 
     /** @test */
     public function testGuestsCannotViewAPromotersConcertList()
@@ -42,10 +52,10 @@ class ViewConcertListingTest extends TestCase
         $response = $this->actingAs($user)->get('/backstage/concerts');
 
         $response->assertStatus(200);
-        $this->assertTrue($response->original->getData()['concerts']->contains($concerts[0]));
-        $this->assertTrue($response->original->getData()['concerts']->contains($concerts[1]));
-        $this->assertTrue($response->original->getData()['concerts']->contains($concerts[2]));
-        $this->assertFalse($response->original->getData()['concerts']->contains($otherUsersConcert));
+        $this->assertTrue($response->data('concerts')->contains($concerts[0]));
+        $this->assertTrue($response->data('concerts')->contains($concerts[1]));
+        $this->assertTrue($response->data('concerts')->contains($concerts[2]));
+        $this->assertFalse($response->data('concerts')->contains($otherUsersConcert));
     }
 
     /** @test */
